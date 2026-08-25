@@ -15,6 +15,9 @@ public class Haro {
         System.out.println("What can I do for you?");
         System.out.println(horizontalLine);
 
+        String[] tasks = new String[100];
+        int taskCount = 0;
+
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine();
@@ -23,8 +26,15 @@ public class Haro {
                 System.out.println("Bye. Hope to see you again soon!");
                 System.out.println(horizontalLine);
                 break;
+            } else if (input.equals("list")) {
+                for (int i = 0; i < taskCount; i++) {
+                    System.out.println((i + 1) + ". " + tasks[i]);
+                }
+            } else {
+                tasks[taskCount] = input;
+                taskCount++;
+                System.out.println("added: " + input);
             }
-            System.out.println(input);
             System.out.println(horizontalLine);
         }
         scanner.close();
