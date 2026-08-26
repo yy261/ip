@@ -36,6 +36,11 @@ public class Haro {
                 tasks[taskIndex].markAsDone();
                 System.out.println("Nice! I've marked this task as done:");
                 System.out.println("  " + tasks[taskIndex]);
+            } else if (input.startsWith("unmark ")) {
+                int taskIndex = Integer.parseInt(input.substring("unmark ".length())) - 1;
+                tasks[taskIndex].markAsNotDone();
+                System.out.println("OK, I've marked this task as not done yet:");
+                System.out.println("  " + tasks[taskIndex]);
             } else {
                 tasks[taskCount] = new Task(input);
                 taskCount++;
