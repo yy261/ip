@@ -1,6 +1,18 @@
 import java.util.Scanner;
 
+/**
+ * Entry point for the Haro chatbot.
+ *
+ * Greets the user, then repeatedly reads a line of input and adds it as a
+ * task, lists the stored tasks, marks or unmarks a task as done, or exits
+ * on "bye".
+ */
 public class Haro {
+    /**
+     * Runs Haro's greet-read-respond loop until the user types "bye".
+     *
+     * @param args Not used.
+     */
     public static void main(String[] args) {
         String banner = "  _   _                 \n"
                 + " | | | | __ _ _ __ ___  \n"
