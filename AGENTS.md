@@ -35,5 +35,5 @@ All Java code in this project must follow the `seedu-java-coding-standard` skill
 ## Git
 
 Use lightweight tags unless the user requests an annotated tag.
-When proposing or creating a commit message, include enough detail to explain the rationale for the change.
+Commit messages must follow the `seedu-git-standard` skill (`.claude/skills/seedu-git-standard/SKILL.md`), based on the [SE-EDU Git conventions](https://se-education.org/guides/conventions/git.html): imperative-mood subject line, 50/72 char soft/hard limit, and a body explaining what changed and why for any non-trivial commit.
 Do not commit or push unless explicitly asked.
