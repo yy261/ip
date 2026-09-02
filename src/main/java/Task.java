@@ -1,7 +1,11 @@
 /**
- * Represents a single task with a description and a done/not-done status.
+ * Represents a task with a description and a done/not-done status.
+ *
+ * This is the common base class for all task types. Each concrete subclass
+ * supplies its own type icon (e.g. {@code "T"} for a todo), so that the
+ * formatting logic shared by all task types can live here.
  */
-public class Task {
+public abstract class Task {
     protected String description;
     protected boolean isDone;
 
@@ -20,12 +24,19 @@ public class Task {
     }
 
     /**
+     * Returns the single-character icon identifying this task's type.
+     *
+     * @return {@code "T"}, {@code "D"} or {@code "E"} depending on the subclass.
+     */
+    public abstract String getTypeIcon();
+
+    /**
      * Returns the single-character icon representing this task's done status.
      *
      * @return {@code "X"} if the task is done, or a single space otherwise.
      */
     public String getStatusIcon() {
-        return (isDone ? "X" : " "); // mark done task with X
+        return isDone ? "X" : " ";
     }
 
     /**
@@ -44,6 +55,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "[" + getStatusIcon() + "] " + description;
+        return "[" + getTypeIcon() + "][" + getStatusIcon() + "] " + description;
     }
 }

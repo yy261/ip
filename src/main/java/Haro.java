@@ -53,13 +53,41 @@ public class Haro {
                 tasks[taskIndex].markAsNotDone();
                 System.out.println("OK, I've marked this task as not done yet:");
                 System.out.println("  " + tasks[taskIndex]);
-            } else {
-                tasks[taskCount] = new Task(input);
+            } else if (input.startsWith("todo ")) {
+                String description = input.substring("todo ".length()).trim();
+                tasks[taskCount] = new Todo(description);
                 taskCount++;
-                System.out.println("added: " + input);
+                printAddedTask(tasks[taskCount - 1], taskCount);
+            } else if (input.startsWith("deadline ")) {
+                String arguments = input.substring("deadline ".length());
+                String[] parts = arguments.split(" /by ", 2);
+                tasks[taskCount] = new Deadline(parts[0].trim(), parts[1].trim());
+                taskCount++;
+                printAddedTask(tasks[taskCount - 1], taskCount);
+            } else if (input.startsWith("event ")) {
+                String arguments = input.substring("event ".length());
+                String[] descriptionAndTimes = arguments.split(" /from ", 2);
+                String[] times = descriptionAndTimes[1].split(" /to ", 2);
+                tasks[taskCount] = new Event(descriptionAndTimes[0].trim(),
+                        times[0].trim(), times[1].trim());
+                taskCount++;
+                printAddedTask(tasks[taskCount - 1], taskCount);
+            } else {
+                System.out.println("Sorry, I don't know what that means.");
             }
             System.out.println(horizontalLine);
         }
         scanner.close();
+    }
+    /**
+     * Prints the confirmation shown after a task is added to the list.
+     *
+     * @param task Task that was just added.
+     * @param taskCount Number of tasks in the list after the addition.
+     */
+    private static void printAddedTask(Task task, int taskCount) {
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + task);
+        System.out.println("Now you have " + taskCount + " tasks in the list.");
     }
 }
