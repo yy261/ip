@@ -32,6 +32,16 @@ public class Haro {
     /** Separates an event's start time from its end time. */
     private static final String EVENT_TO_DELIMITER = " /to ";
 
+    /** Reminder of the expected deadline format, shown whenever a deadline cannot be read. */
+    private static final String DEADLINE_FORMAT_HINT =
+            "A deadline needs a description and a due date, "
+            + "e.g. \"deadline return book /by Sunday\".";
+
+    /** Reminder of the expected event format, shown whenever an event cannot be read. */
+    private static final String EVENT_FORMAT_HINT =
+            "An event needs a description, a start and an end, "
+            + "e.g. \"event project meeting /from Mon 2pm /to 4pm\".";
+
     /** Maximum number of tasks Haro can store, since a fixed-size array is used. */
     private static final int MAX_TASKS = 100;
 
@@ -99,7 +109,7 @@ public class Haro {
             setTaskDoneStatus(arguments, false);
             break;
         case COMMAND_TODO:
-            addTask(new Todo(arguments));
+            addTask(parseTodo(arguments));
             break;
         case COMMAND_DEADLINE:
             addTask(parseDeadline(arguments));
@@ -136,14 +146,39 @@ public class Haro {
     }
 
     /**
+     * Creates a todo from the text following the "todo" command word.
+     *
+     * @param arguments Text following the "todo" command word.
+     * @return The todo described by the arguments.
+     * @throws HaroException If no description was given.
+     */
+    private static Todo parseTodo(String arguments) throws HaroException {
+        if (arguments.isEmpty()) {
+            throw new HaroException("A todo needs a description, e.g. \"todo borrow book\".");
+        }
+        return new Todo(arguments);
+    }
+
+    /**
      * Creates a deadline from arguments of the form "description /by date".
      *
      * @param arguments Text following the "deadline" command word.
      * @return The deadline described by the arguments.
+     * @throws HaroException If the "/by" separator is missing, or either the
+     *                       description or the due date is empty.
      */
-    private static Deadline parseDeadline(String arguments) {
+    private static Deadline parseDeadline(String arguments) throws HaroException {
         String[] parts = arguments.split(DEADLINE_BY_DELIMITER, 2);
-        return new Deadline(parts[0].trim(), parts[1].trim());
+        if (parts.length < 2) {
+            throw new HaroException(DEADLINE_FORMAT_HINT);
+        }
+
+        String description = parts[0].trim();
+        String by = parts[1].trim();
+        if (description.isEmpty() || by.isEmpty()) {
+            throw new HaroException(DEADLINE_FORMAT_HINT);
+        }
+        return new Deadline(description, by);
     }
 
     /**
