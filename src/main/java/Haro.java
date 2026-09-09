@@ -187,19 +187,41 @@ public class Haro {
      *
      * @param arguments Text following the "event" command word.
      * @return The event described by the arguments.
+     * @throws HaroException If either separator is missing or out of order, or
+     *                       any of the three parts is empty.
      */
-    private static Event parseEvent(String arguments) {
+    private static Event parseEvent(String arguments) throws HaroException {
         String[] descriptionAndTimes = arguments.split(EVENT_FROM_DELIMITER, 2);
+        if (descriptionAndTimes.length < 2) {
+            throw new HaroException(EVENT_FORMAT_HINT);
+        }
+
         String[] times = descriptionAndTimes[1].split(EVENT_TO_DELIMITER, 2);
-        return new Event(descriptionAndTimes[0].trim(), times[0].trim(), times[1].trim());
+        if (times.length < 2) {
+            throw new HaroException(EVENT_FORMAT_HINT);
+        }
+
+        String description = descriptionAndTimes[0].trim();
+        String from = times[0].trim();
+        String to = times[1].trim();
+        if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
+            throw new HaroException(EVENT_FORMAT_HINT);
+        }
+        return new Event(description, from, to);
     }
 
     /**
      * Stores a task and confirms it to the user.
      *
      * @param task Task to store.
+     * @throws HaroException If the list is already holding {@code MAX_TASKS} tasks.
      */
-    private static void addTask(Task task) {
+    private static void addTask(Task task) throws HaroException {
+        if (taskCount == MAX_TASKS) {
+            throw new HaroException("My list is full at " + MAX_TASKS
+                    + " tasks, so I can't add that one.");
+        }
+
         tasks[taskCount] = task;
         taskCount++;
         printResponse("Got it. I've added this task:",
@@ -213,9 +235,11 @@ public class Haro {
      * @param arguments Text following the command word, holding the task number
      *                  as shown by the "list" command (starting from 1).
      * @param isDone True to mark the task as done, false to mark it as not done.
+     * @throws HaroException If no task number was given, if it is not a number,
+     *                       or if no task has that number.
      */
-    private static void setTaskDoneStatus(String arguments, boolean isDone) {
-        int taskIndex = Integer.parseInt(arguments) - 1;
+    private static void setTaskDoneStatus(String arguments, boolean isDone) throws HaroException {
+        int taskIndex = parseTaskIndex(arguments);
         Task task = tasks[taskIndex];
         if (isDone) {
             task.markAsDone();
@@ -224,6 +248,38 @@ public class Haro {
             task.markAsNotDone();
             printResponse("OK, I've marked this task as not done yet:", "  " + task);
         }
+    }
+
+    /**
+     * Converts a task number typed by the user into an index into the task array.
+     *
+     * Rejecting a bad number here, rather than letting the array or
+     * {@code Integer.parseInt} fail later, is what lets the caller assume the
+     * index it receives is always safe to use.
+     *
+     * @param arguments Text following the command word, holding the task number
+     *                  as shown by the "list" command (starting from 1).
+     * @return The matching index into {@code tasks} (starting from 0).
+     * @throws HaroException If the text is missing, is not a number, or names a
+     *                       task that does not exist.
+     */
+    private static int parseTaskIndex(String arguments) throws HaroException {
+        if (arguments.isEmpty()) {
+            throw new HaroException("Which task? Give me its number, e.g. \"mark 2\".");
+        }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(arguments);
+        } catch (NumberFormatException e) {
+            throw new HaroException("\"" + arguments + "\" is not a task number. Try \"mark 2\".");
+        }
+
+        if (taskNumber < 1 || taskNumber > taskCount) {
+            throw new HaroException("There is no task " + taskNumber + ". You have "
+                    + taskCount + " task(s) so far.");
+        }
+        return taskNumber - 1;
     }
 
     /**
