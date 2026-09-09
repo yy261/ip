@@ -51,13 +51,21 @@ public class Haro {
 
     /**
      * Reads and executes commands until the exit command is entered.
+     *
+     * A command that the user got wrong is reported and then forgotten, so a
+     * mistake never ends the session. This is the one place where problems
+     * raised anywhere inside a command are turned into a printed response.
      */
     private static void runCommandLoop() {
         Scanner scanner = new Scanner(System.in);
         boolean isExitRequested = false;
         while (!isExitRequested) {
             String input = scanner.nextLine().trim();
-            isExitRequested = executeCommand(input);
+            try {
+                isExitRequested = executeCommand(input);
+            } catch (HaroException e) {
+                printResponse(e.getMessage());
+            }
         }
         scanner.close();
     }
@@ -67,8 +75,14 @@ public class Haro {
      *
      * @param input Full line of input entered by the user.
      * @return True if the user asked to exit, false otherwise.
+     * @throws HaroException If the command is not recognised, or its arguments
+     *                       are missing or cannot be used.
      */
-    private static boolean executeCommand(String input) {
+    private static boolean executeCommand(String input) throws HaroException {
+        if (input.isEmpty()) {
+            throw new HaroException("I didn't catch that. Type a command, or \"bye\" to leave.");
+        }
+
         String commandWord = getCommandWord(input);
         String arguments = getCommandArguments(input);
 
@@ -94,7 +108,8 @@ public class Haro {
             addTask(parseEvent(arguments));
             break;
         default:
-            printResponse("Sorry, I don't know what \"" + input + "\" means.");
+            throw new HaroException("Sorry, I don't know what \"" + commandWord + "\" means. "
+                    + "I understand: todo, deadline, event, list, mark, unmark and bye.");
         }
         return false;
     }
