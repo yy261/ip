@@ -27,6 +27,12 @@ public class Event extends Task {
     }
 
     @Override
+    public String toFileFormat() {
+        return super.toFileFormat() + Storage.FIELD_SEPARATOR + from
+                + Storage.FIELD_SEPARATOR + to;
+    }
+
+    @Override
     public String toString() {
         return super.toString() + " (from: " + from + " to: " + to + ")";
     }

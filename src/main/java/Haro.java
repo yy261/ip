@@ -55,8 +55,39 @@ public class Haro {
      */
     public static void main(String[] args) {
         printGreeting();
+        loadTasks();
         runCommandLoop();
         printFarewell();
+    }
+
+    /**
+     * Restores the tasks saved by the previous run.
+     *
+     * A failure to load is reported and then ignored, so that a missing or
+     * unreadable save file leaves the user with an empty list rather than no
+     * program at all.
+     */
+    private static void loadTasks() {
+        try {
+            taskCount = Storage.load(tasks);
+        } catch (HaroException e) {
+            printResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Writes the current tasks to the hard disk.
+     *
+     * Called after every change to the list, so that the saved file always
+     * matches what the user sees and nothing is lost if the program stops
+     * without reaching the "bye" command.
+     */
+    private static void saveTasks() {
+        try {
+            Storage.save(tasks, taskCount);
+        } catch (HaroException e) {
+            printResponse(e.getMessage());
+        }
     }
 
     /**
@@ -224,6 +255,7 @@ public class Haro {
 
         tasks[taskCount] = task;
         taskCount++;
+        saveTasks();
         printResponse("Got it. I've added this task:",
                 "  " + task,
                 "Now you have " + taskCount + " tasks in the list.");
@@ -243,9 +275,11 @@ public class Haro {
         Task task = tasks[taskIndex];
         if (isDone) {
             task.markAsDone();
+            saveTasks();
             printResponse("Nice! I've marked this task as done:", "  " + task);
         } else {
             task.markAsNotDone();
+            saveTasks();
             printResponse("OK, I've marked this task as not done yet:", "  " + task);
         }
     }
