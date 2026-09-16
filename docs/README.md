@@ -1,4 +1,4 @@
-# Haro User Guide
+# Usagi User Guide
 
 // Product screenshot goes here
 
