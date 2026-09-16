@@ -92,8 +92,39 @@ public class Usagi {
     public static void main(String[] args) {
         useUtf8Output();
         printGreeting();
+        loadTasks();
         runCommandLoop();
         printFarewell();
+    }
+
+    /**
+     * Restores the tasks saved by the previous run.
+     *
+     * A failure to load is reported and then ignored, so that a missing or
+     * unreadable save file leaves the user with an empty list rather than no
+     * program at all.
+     */
+    private static void loadTasks() {
+        try {
+            tasks.addAll(Storage.load());
+        } catch (UsagiException e) {
+            printResponse(e.getMessage());
+        }
+    }
+
+    /**
+     * Writes the current tasks to the hard disk.
+     *
+     * Called after every change to the list, so that the saved file always
+     * matches what the user sees and nothing is lost if the program stops
+     * without reaching the "bye" command.
+     */
+    private static void saveTasks() {
+        try {
+            Storage.save(tasks);
+        } catch (UsagiException e) {
+            printResponse(e.getMessage());
+        }
     }
 
     /**
@@ -269,6 +300,7 @@ public class Usagi {
      */
     private static void addTask(Task task) {
         tasks.add(task);
+        saveTasks();
         printResponse("Puru Yaha->(Got it. I've added this task:",
                 "  " + task,
                 "Now you have " + tasks.size() + " tasks in the list.)");
@@ -288,6 +320,7 @@ public class Usagi {
     private static void deleteTask(String arguments) throws UsagiException {
         int taskIndex = parseTaskIndex(arguments);
         Task removedTask = tasks.remove(taskIndex);
+        saveTasks();
         printResponse("HaAAA->(Noted. I've removed this task:",
                 "  " + removedTask,
                 "Now you have " + tasks.size() + " tasks in the list.)");
@@ -307,9 +340,11 @@ public class Usagi {
         Task task = tasks.get(taskIndex);
         if (isDone) {
             task.markAsDone();
+            saveTasks();
             printResponse("Nice! I've marked this task as done:", "  " + task);
         } else {
             task.markAsNotDone();
+            saveTasks();
             printResponse("OK, I've marked this task as not done yet:", "  " + task);
         }
     }

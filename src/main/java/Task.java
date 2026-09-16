@@ -53,6 +53,20 @@ public abstract class Task {
         isDone = false;
     }
 
+    /**
+     * Returns this task written as one line of the save file.
+     *
+     * Subclasses that have extra details append them to this line, in the same
+     * order that {@code Storage} reads them back.
+     *
+     * @return Line of the form {@code "T | 1 | read book"}, where the middle
+     *         field is 1 when the task is done and 0 when it is not.
+     */
+    public String toFileFormat() {
+        return getTypeIcon() + Storage.FIELD_SEPARATOR + (isDone ? "1" : "0")
+                + Storage.FIELD_SEPARATOR + description;
+    }
+
     @Override
     public String toString() {
         return "[" + getTypeIcon() + "][" + getStatusIcon() + "] " + description;
