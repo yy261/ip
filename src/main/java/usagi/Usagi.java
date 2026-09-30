@@ -1,9 +1,6 @@
 package usagi;
 
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * Entry point for the Usagi chatbot.
@@ -13,42 +10,6 @@ import java.util.Scanner;
  * delete them, and record three kinds of tasks: todos, deadlines and events.
  */
 public class Usagi {
-    /**
-     * Rabbit shown when Usagi starts, since "usagi" means rabbit in Japanese.
-     *
-     * Drawn with Unicode Braille characters (U+2800 onwards) rather than plain
-     * ASCII, so it only displays correctly on a console set to UTF-8.
-     */
-    private static final String BANNER = """
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠟⠙⣿⠀⢀⣴⠟⠋⢻⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⠟⠀⠀⢰⡟⣠⡾⠃⠀⠀⣼⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⠃⠀⠀⠀⣿⢣⡟⠁⠀⠀⢰⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⡏⠀⠀⠀⣸⠇⣾⠀⠀⠀⠀⣿⣹⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⠀⠀⠀⢠⡿⣸⡇⠀⠀⠀⣸⡏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⣾⡇⣿⠀⠀⠀⢰⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⠀⠀⠀⣿⠀⣿⠀⠀⠀⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⡆⠀⠀⣿⠉⣿⠀⠀⠀⡏⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣠⡹⠷⠀⠀⠻⠟⠛⠀⠀⠀⠛⠿⠷⠶⢶⣤⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣼⣾⠟⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠿⣶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⡿⠟⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⠤⢤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⣴⡿⠋⠀⠀⠀⡠⠒⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠢⡀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣷⣄⠀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⢰⣾⠟⠀⠀⠀⢀⡞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣄⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⢀⣾⠋⠀⠀⠀⠀⡼⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠩⢷⡄⠀⠀⠀
-            ⠀⠀⠀⠀⣾⡏⠀⠀⠀⠀⠀⠀⠀⢀⣴⠞⠷⣆⠀⠀⠀⠀⠀⠀⢠⡾⠛⢻⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⡇⠀⠀⠀
-            ⠀⠀⠀⠀⣿⠁⠀⠀⠀⠀⠀⠀⠀⠸⣿⠶⢶⣿⠀⠀⠀⠀⠀⠀⠸⣿⣶⣺⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣳⠀⠀⠀
-            ⠀⠀⠀⠀⣿⠀⠀⠀⠀⠔⢒⡆⢀⠂⢌⠉⠉⠁⢀⠀⢰⣆⠀⢠⡀⠈⠉⠉⠀⣤⠀⣼⢩⡏⢵⡆⠀⠀⠀⠀⠀⠀⠀⡘⣿⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠸⣿⡀⠀⠀⠸⠻⡿⠁⠏⠸⢯⠇⠀⠀⠘⠳⣾⣿⣶⡞⠃⠀⠀⠀⠈⡇⠸⠋⠸⢃⢛⠀⠀⠀⠀⠀⠀⠀⠰⣾⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⢻⣧⠀⠀⠀⠀⠐⠒⠒⠂⠁⠀⠀⠀⠀⠀⢻⡿⡟⣷⠀⠀⠀⠀⠀⠈⠉⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⡞⣾⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠈⢿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣷⣆⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⡟⠃⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠈⢿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣶⡉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡿⠁⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠙⢿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡿⠁⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⢂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡆⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠲⣴⣟⣫⡿⠞⠛⠋⣛⣷⡦⠤⠶⠀⠀⠀⠀⠀⠀⢸⣷⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣧⠀⠀⠀⠀⠀⠀⠀⣦⣀⣄⡀⠈⠉⠁⣀⣠⣴⠟⠋⠀⠀⣀⣠⡤⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⠀⠀⠀
-            """;
-
-    private static final String HORIZONTAL_LINE = "_".repeat(60);
-
     private static final String COMMAND_BYE = "bye";
     private static final String COMMAND_LIST = "list";
     private static final String COMMAND_MARK = "mark";
@@ -86,6 +47,9 @@ public class Usagi {
      */
     private final ArrayList<Task> tasks = new ArrayList<>();
 
+    /** Reads the user's commands and prints Usagi's responses. */
+    private final Ui ui = new Ui();
+
     /**
      * Starts the Usagi chatbot.
      *
@@ -99,11 +63,10 @@ public class Usagi {
      * Runs Usagi's greet-read-respond loop until the user types "bye".
      */
     public void run() {
-        useUtf8Output();
-        printGreeting();
+        ui.showWelcome();
         loadTasks();
         runCommandLoop();
-        printFarewell();
+        ui.showFarewell();
     }
 
     /**
@@ -117,7 +80,7 @@ public class Usagi {
         try {
             tasks.addAll(Storage.load());
         } catch (UsagiException e) {
-            printResponse(e.getMessage());
+            ui.showError(e.getMessage());
         }
     }
 
@@ -132,20 +95,8 @@ public class Usagi {
         try {
             Storage.save(tasks);
         } catch (UsagiException e) {
-            printResponse(e.getMessage());
+            ui.showError(e.getMessage());
         }
-    }
-
-    /**
-     * Switches printed output to UTF-8, so that the banner is not mangled.
-     *
-     * Java encodes printed text using the platform's default character set,
-     * which on Windows is usually Cp1252. That character set has no room for
-     * the Braille characters the banner is drawn with, so every one of them
-     * would be printed as "?" instead.
-     */
-    private void useUtf8Output() {
-        System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
     }
 
     /**
@@ -156,17 +107,16 @@ public class Usagi {
      * raised anywhere inside a command are turned into a printed response.
      */
     private void runCommandLoop() {
-        Scanner scanner = new Scanner(System.in);
         boolean isExitRequested = false;
         while (!isExitRequested) {
-            String input = scanner.nextLine().trim();
+            String input = ui.readCommand();
             try {
                 isExitRequested = executeCommand(input);
             } catch (UsagiException e) {
-                printResponse(e.getMessage());
+                ui.showError(e.getMessage());
             }
         }
-        scanner.close();
+        ui.close();
     }
 
     /**
@@ -310,7 +260,7 @@ public class Usagi {
     private void addTask(Task task) {
         tasks.add(task);
         saveTasks();
-        printResponse("Puru Yaha->(Got it. I've added this task:",
+        ui.showResponse("Puru Yaha->(Got it. I've added this task:",
                 "  " + task,
                 "Now you have " + tasks.size() + " tasks in the list.)");
     }
@@ -330,7 +280,7 @@ public class Usagi {
         int taskIndex = parseTaskIndex(arguments);
         Task removedTask = tasks.remove(taskIndex);
         saveTasks();
-        printResponse("HaAAA->(Noted. I've removed this task:",
+        ui.showResponse("HaAAA->(Noted. I've removed this task:",
                 "  " + removedTask,
                 "Now you have " + tasks.size() + " tasks in the list.)");
     }
@@ -350,11 +300,11 @@ public class Usagi {
         if (isDone) {
             task.markAsDone();
             saveTasks();
-            printResponse("Nice! I've marked this task as done:", "  " + task);
+            ui.showResponse("Nice! I've marked this task as done:", "  " + task);
         } else {
             task.markAsNotDone();
             saveTasks();
-            printResponse("OK, I've marked this task as not done yet:", "  " + task);
+            ui.showResponse("OK, I've marked this task as not done yet:", "  " + task);
         }
     }
 
@@ -399,34 +349,6 @@ public class Usagi {
         for (int i = 0; i < tasks.size(); i++) {
             lines[i + 1] = (i + 1) + "." + tasks.get(i);
         }
-        printResponse(lines);
-    }
-
-    /**
-     * Prints the welcome message shown when Usagi starts.
-     */
-    private void printGreeting() {
-        printResponse(BANNER, "Una->(Hello! I'm Usagi.)", "Yaha->(What can I do for you?)");
-    }
-
-    /**
-     * Prints the message shown just before Usagi exits.
-     */
-    private void printFarewell() {
-        printResponse("U unana una->(Bye. Hope to see you again soon!)");
-    }
-
-    /**
-     * Prints the given lines framed by horizontal lines, which is the format
-     * Usagi uses for every response.
-     *
-     * @param lines Lines of the response, printed one per line.
-     */
-    private void printResponse(String... lines) {
-        System.out.println(HORIZONTAL_LINE);
-        for (String line : lines) {
-            System.out.println(line);
-        }
-        System.out.println(HORIZONTAL_LINE);
+        ui.showResponse(lines);
     }
 }
