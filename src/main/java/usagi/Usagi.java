@@ -7,7 +7,7 @@ import java.util.List;
  *
  * Greets the user, then repeatedly reads a command and responds to it, until
  * the user types "bye". Usagi can list tasks, mark or unmark them as done,
- * delete them, and record three kinds of tasks: todos, deadlines and events.
+ * delete and search them, and record three kinds of tasks: todos, deadlines and events.
  *
  * This class only coordinates the work: {@link Ui} talks to the user,
  * {@link Parser} makes sense of commands, {@link TaskList} holds the tasks and
@@ -22,6 +22,7 @@ public class Usagi {
     private static final String COMMAND_DEADLINE = "deadline";
     private static final String COMMAND_EVENT = "event";
     private static final String COMMAND_DELETE = "delete";
+    private static final String COMMAND_FIND = "find";
 
     /**
      * Tasks recorded so far, in the order they were added.
@@ -155,9 +156,13 @@ public class Usagi {
         case COMMAND_DELETE:
             deleteTask(arguments);
             break;
+        case COMMAND_FIND:
+            findTasks(arguments);
+            break;
         default:
             throw new UsagiException("Una Yahaha->(Sorry, I don't know what \"" + commandWord + "\" means.) "
-                    + "Yaha Una yahauna->(I understand: todo, deadline, event, list, mark, unmark, delete and bye.)");
+                    + "Yaha Una yahauna->(I understand: todo, deadline, event, list, mark, unmark, "
+                    + "delete, find and bye.)");
         }
         return false;
     }
@@ -222,11 +227,38 @@ public class Usagi {
      * Prints all stored tasks, numbered from 1.
      */
     private void printTaskList() {
-        List<Task> allTasks = tasks.getAll();
-        String[] lines = new String[allTasks.size() + 1];
-        lines[0] = "Here are the tasks in your list:";
-        for (int i = 0; i < allTasks.size(); i++) {
-            lines[i + 1] = (i + 1) + "." + allTasks.get(i);
+        printNumberedTasks("Here are the tasks in your list:", tasks.getAll());
+    }
+
+    /**
+     * Prints the tasks whose description contains a keyword, numbered from 1.
+     *
+     * @param arguments Text following the "find" command word, holding the
+     *                  keyword to search for.
+     * @throws UsagiException If no keyword was given.
+     */
+    private void findTasks(String arguments) throws UsagiException {
+        String keyword = Parser.parseFindKeyword(arguments);
+        List<Task> matchingTasks = tasks.find(keyword);
+        if (matchingTasks.isEmpty()) {
+            ui.showResponse("Hunaaa->(No tasks match \"" + keyword + "\".)");
+            return;
+        }
+        printNumberedTasks("Here are the matching tasks in your list:", matchingTasks);
+    }
+
+    /**
+     * Prints a heading followed by the given tasks, one per line, numbered
+     * from 1.
+     *
+     * @param heading Line printed above the tasks.
+     * @param tasksToShow Tasks to print, in order.
+     */
+    private void printNumberedTasks(String heading, List<Task> tasksToShow) {
+        String[] lines = new String[tasksToShow.size() + 1];
+        lines[0] = heading;
+        for (int i = 0; i < tasksToShow.size(); i++) {
+            lines[i + 1] = (i + 1) + "." + tasksToShow.get(i);
         }
         ui.showResponse(lines);
     }
