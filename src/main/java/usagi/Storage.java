@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -98,7 +99,7 @@ public class Storage {
      * @param tasks Tasks to write, in the order they should be saved.
      * @throws UsagiException If the file or its folder cannot be written to.
      */
-    public void save(ArrayList<Task> tasks) throws UsagiException {
+    public void save(List<Task> tasks) throws UsagiException {
         File saveDirectory = new File(filePath).getParentFile();
         if (saveDirectory != null && !saveDirectory.exists()) {
             saveDirectory.mkdirs();

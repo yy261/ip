@@ -1,6 +1,6 @@
 package usagi;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entry point for the Usagi chatbot.
@@ -41,11 +41,9 @@ public class Usagi {
     /**
      * Tasks recorded so far, in the order they were added.
      *
-     * An {@code ArrayList} is used rather than a fixed-size array so that the
-     * list can grow as needed and so that removing a task automatically shifts
-     * the tasks after it, which is what the "delete" command needs.
+     * Starts empty, and is replaced by the saved tasks once they are loaded.
      */
-    private final ArrayList<Task> tasks = new ArrayList<>();
+    private TaskList tasks = new TaskList();
 
     /** Reads the user's commands and prints Usagi's responses. */
     private final Ui ui;
@@ -91,7 +89,7 @@ public class Usagi {
      */
     private void loadTasks() {
         try {
-            tasks.addAll(storage.load());
+            tasks = new TaskList(storage.load());
         } catch (UsagiException e) {
             ui.showError(e.getMessage());
         }
@@ -106,7 +104,7 @@ public class Usagi {
      */
     private void saveTasks() {
         try {
-            storage.save(tasks);
+            storage.save(tasks.getAll());
         } catch (UsagiException e) {
             ui.showError(e.getMessage());
         }
@@ -291,7 +289,7 @@ public class Usagi {
      */
     private void deleteTask(String arguments) throws UsagiException {
         int taskIndex = parseTaskIndex(arguments);
-        Task removedTask = tasks.remove(taskIndex);
+        Task removedTask = tasks.delete(taskIndex);
         saveTasks();
         ui.showResponse("HaAAA->(Noted. I've removed this task:",
                 "  " + removedTask,
@@ -324,15 +322,13 @@ public class Usagi {
     /**
      * Converts a task number typed by the user into an index into the task list.
      *
-     * Rejecting a bad number here, rather than letting the list or
-     * {@code Integer.parseInt} fail later, is what lets the caller assume the
-     * index it receives is always safe to use.
+     * Whether a task exists at that index is checked by {@link TaskList}, as
+     * only the list knows how many tasks it holds.
      *
      * @param arguments Text following the command word, holding the task number
      *                  as shown by the "list" command (starting from 1).
-     * @return The matching index into {@code tasks} (starting from 0).
-     * @throws UsagiException If the text is missing, is not a number, or names a
-     *                       task that does not exist.
+     * @return The matching index into the task list (starting from 0).
+     * @throws UsagiException If the text is missing or is not a number.
      */
     private int parseTaskIndex(String arguments) throws UsagiException {
         if (arguments.isEmpty()) {
@@ -345,11 +341,6 @@ public class Usagi {
         } catch (NumberFormatException e) {
             throw new UsagiException("Prrurururur->(\"" + arguments + "\" is not a task number. Try \"mark 2\".)");
         }
-
-        if (taskNumber < 1 || taskNumber > tasks.size()) {
-            throw new UsagiException("uNAAA->(There is no task " + taskNumber + ". You have "
-                    + tasks.size() + " task(s) so far.)");
-        }
         return taskNumber - 1;
     }
 
@@ -357,10 +348,11 @@ public class Usagi {
      * Prints all stored tasks, numbered from 1.
      */
     private void printTaskList() {
-        String[] lines = new String[tasks.size() + 1];
+        List<Task> allTasks = tasks.getAll();
+        String[] lines = new String[allTasks.size() + 1];
         lines[0] = "Here are the tasks in your list:";
-        for (int i = 0; i < tasks.size(); i++) {
-            lines[i + 1] = (i + 1) + "." + tasks.get(i);
+        for (int i = 0; i < allTasks.size(); i++) {
+            lines[i + 1] = (i + 1) + "." + allTasks.get(i);
         }
         ui.showResponse(lines);
     }
