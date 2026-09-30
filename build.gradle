@@ -37,8 +37,8 @@ test {
 }
 
 application {
-    // Usagi is in the default package, so the class name needs no package prefix.
-    mainClass = 'Usagi'
+    // Fully qualified name: the class Usagi now lives in the usagi package.
+    mainClass = 'usagi.Usagi'
 }
 
 jar {
