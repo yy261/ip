@@ -115,6 +115,21 @@ public class Parser {
     }
 
     /**
+     * Returns the keyword to search for, given the text following the "find"
+     * command word.
+     *
+     * @param arguments Text following the "find" command word.
+     * @return The keyword, which may contain spaces, e.g. "return book".
+     * @throws UsagiException If no keyword was given.
+     */
+    public static String parseFindKeyword(String arguments) throws UsagiException {
+        if (arguments.isEmpty()) {
+            throw new UsagiException("Yahaaa?->(What should I look for? e.g. \"find book\".)");
+        }
+        return arguments;
+    }
+
+    /**
      * Converts a task number typed by the user into an index into the task list.
      *
      * Whether a task exists at that index is checked by {@link TaskList}, as
