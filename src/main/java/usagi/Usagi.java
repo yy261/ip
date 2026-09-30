@@ -84,14 +84,21 @@ public class Usagi {
      * list can grow as needed and so that removing a task automatically shifts
      * the tasks after it, which is what the "delete" command needs.
      */
-    private static final ArrayList<Task> tasks = new ArrayList<>();
+    private final ArrayList<Task> tasks = new ArrayList<>();
 
     /**
-     * Runs Usagi's greet-read-respond loop until the user types "bye".
+     * Starts the Usagi chatbot.
      *
      * @param args Not used.
      */
     public static void main(String[] args) {
+        new Usagi().run();
+    }
+
+    /**
+     * Runs Usagi's greet-read-respond loop until the user types "bye".
+     */
+    public void run() {
         useUtf8Output();
         printGreeting();
         loadTasks();
@@ -106,7 +113,7 @@ public class Usagi {
      * unreadable save file leaves the user with an empty list rather than no
      * program at all.
      */
-    private static void loadTasks() {
+    private void loadTasks() {
         try {
             tasks.addAll(Storage.load());
         } catch (UsagiException e) {
@@ -121,7 +128,7 @@ public class Usagi {
      * matches what the user sees and nothing is lost if the program stops
      * without reaching the "bye" command.
      */
-    private static void saveTasks() {
+    private void saveTasks() {
         try {
             Storage.save(tasks);
         } catch (UsagiException e) {
@@ -137,7 +144,7 @@ public class Usagi {
      * the Braille characters the banner is drawn with, so every one of them
      * would be printed as "?" instead.
      */
-    private static void useUtf8Output() {
+    private void useUtf8Output() {
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
     }
 
@@ -148,7 +155,7 @@ public class Usagi {
      * mistake never ends the session. This is the one place where problems
      * raised anywhere inside a command are turned into a printed response.
      */
-    private static void runCommandLoop() {
+    private void runCommandLoop() {
         Scanner scanner = new Scanner(System.in);
         boolean isExitRequested = false;
         while (!isExitRequested) {
@@ -170,7 +177,7 @@ public class Usagi {
      * @throws UsagiException If the command is not recognised, or its arguments
      *                       are missing or cannot be used.
      */
-    private static boolean executeCommand(String input) throws UsagiException {
+    private boolean executeCommand(String input) throws UsagiException {
         if (input.isEmpty()) {
             throw new UsagiException("HAAAAAA->(I didn't catch that. Type a command, or \"bye\" to leave.)");
         }
@@ -215,7 +222,7 @@ public class Usagi {
      * @param input Full line of input entered by the user.
      * @return The command word, or an empty string if the input is empty.
      */
-    private static String getCommandWord(String input) {
+    private String getCommandWord(String input) {
         return input.split(" ", 2)[0];
     }
 
@@ -225,7 +232,7 @@ public class Usagi {
      * @param input Full line of input entered by the user.
      * @return The arguments, or an empty string if there are none.
      */
-    private static String getCommandArguments(String input) {
+    private String getCommandArguments(String input) {
         String[] parts = input.split(" ", 2);
         return parts.length > 1 ? parts[1].trim() : "";
     }
@@ -237,7 +244,7 @@ public class Usagi {
      * @return The todo described by the arguments.
      * @throws UsagiException If no description was given.
      */
-    private static Todo parseTodo(String arguments) throws UsagiException {
+    private Todo parseTodo(String arguments) throws UsagiException {
         if (arguments.isEmpty()) {
             throw new UsagiException("Unana yaha->(A todo needs a description, e.g. \"todo borrow book\".)");
         }
@@ -252,7 +259,7 @@ public class Usagi {
      * @throws UsagiException If the "/by" separator is missing, or either the
      *                       description or the due date is empty.
      */
-    private static Deadline parseDeadline(String arguments) throws UsagiException {
+    private Deadline parseDeadline(String arguments) throws UsagiException {
         String[] parts = arguments.split(DEADLINE_BY_DELIMITER, 2);
         if (parts.length < 2) {
             throw new UsagiException(DEADLINE_FORMAT_HINT);
@@ -275,7 +282,7 @@ public class Usagi {
      * @throws UsagiException If either separator is missing or out of order, or
      *                       any of the three parts is empty.
      */
-    private static Event parseEvent(String arguments) throws UsagiException {
+    private Event parseEvent(String arguments) throws UsagiException {
         String[] descriptionAndTimes = arguments.split(EVENT_FROM_DELIMITER, 2);
         if (descriptionAndTimes.length < 2) {
             throw new UsagiException(EVENT_FORMAT_HINT);
@@ -300,7 +307,7 @@ public class Usagi {
      *
      * @param task Task to store.
      */
-    private static void addTask(Task task) {
+    private void addTask(Task task) {
         tasks.add(task);
         saveTasks();
         printResponse("Puru Yaha->(Got it. I've added this task:",
@@ -319,7 +326,7 @@ public class Usagi {
      * @throws UsagiException If no task number was given, if it is not a number,
      *                       or if no task has that number.
      */
-    private static void deleteTask(String arguments) throws UsagiException {
+    private void deleteTask(String arguments) throws UsagiException {
         int taskIndex = parseTaskIndex(arguments);
         Task removedTask = tasks.remove(taskIndex);
         saveTasks();
@@ -337,7 +344,7 @@ public class Usagi {
      * @throws UsagiException If no task number was given, if it is not a number,
      *                       or if no task has that number.
      */
-    private static void setTaskDoneStatus(String arguments, boolean isDone) throws UsagiException {
+    private void setTaskDoneStatus(String arguments, boolean isDone) throws UsagiException {
         int taskIndex = parseTaskIndex(arguments);
         Task task = tasks.get(taskIndex);
         if (isDone) {
@@ -364,7 +371,7 @@ public class Usagi {
      * @throws UsagiException If the text is missing, is not a number, or names a
      *                       task that does not exist.
      */
-    private static int parseTaskIndex(String arguments) throws UsagiException {
+    private int parseTaskIndex(String arguments) throws UsagiException {
         if (arguments.isEmpty()) {
             throw new UsagiException("Huunnn->(Which task? Give me its number, e.g. \"mark 2\" or \"delete 2\".)");
         }
@@ -386,7 +393,7 @@ public class Usagi {
     /**
      * Prints all stored tasks, numbered from 1.
      */
-    private static void printTaskList() {
+    private void printTaskList() {
         String[] lines = new String[tasks.size() + 1];
         lines[0] = "Here are the tasks in your list:";
         for (int i = 0; i < tasks.size(); i++) {
@@ -398,14 +405,14 @@ public class Usagi {
     /**
      * Prints the welcome message shown when Usagi starts.
      */
-    private static void printGreeting() {
+    private void printGreeting() {
         printResponse(BANNER, "Una->(Hello! I'm Usagi.)", "Yaha->(What can I do for you?)");
     }
 
     /**
      * Prints the message shown just before Usagi exits.
      */
-    private static void printFarewell() {
+    private void printFarewell() {
         printResponse("U unana una->(Bye. Hope to see you again soon!)");
     }
 
@@ -415,7 +422,7 @@ public class Usagi {
      *
      * @param lines Lines of the response, printed one per line.
      */
-    private static void printResponse(String... lines) {
+    private void printResponse(String... lines) {
         System.out.println(HORIZONTAL_LINE);
         for (String line : lines) {
             System.out.println(line);
