@@ -1,3 +1,5 @@
+package usagi;
+
 /**
  * Signals that a command could not be carried out because of something the
  * user did, such as a missing description or a task number that does not exist.
