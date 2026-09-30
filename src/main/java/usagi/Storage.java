@@ -25,9 +25,6 @@ import java.util.Scanner;
  * that is harder to read and harder to write.
  */
 public class Storage {
-    /** Location of the save file, relative to the project root. */
-    private static final String FILE_PATH = "./data/tasks.txt";
-
     /** Separates the fields of one task, both when writing and when reading. */
     public static final String FIELD_SEPARATOR = " | ";
 
@@ -46,6 +43,19 @@ public class Storage {
     /** Number of fields a line needs before the task-specific details. */
     private static final int COMMON_FIELD_COUNT = 3;
 
+    /** Location of the save file, relative to the folder Usagi is run from. */
+    private final String filePath;
+
+    /**
+     * Creates a Storage that reads and writes the given file.
+     *
+     * @param filePath Location of the save file. Its folder is created on the
+     *                 first save if it does not exist yet.
+     */
+    public Storage(String filePath) {
+        this.filePath = filePath;
+    }
+
     /**
      * Loads the saved tasks.
      *
@@ -57,9 +67,9 @@ public class Storage {
      * @return Tasks read from the save file, in the order they were saved.
      * @throws UsagiException If the save file exists but cannot be read.
      */
-    public static ArrayList<Task> load() throws UsagiException {
+    public ArrayList<Task> load() throws UsagiException {
         ArrayList<Task> tasks = new ArrayList<>();
-        File saveFile = new File(FILE_PATH);
+        File saveFile = new File(filePath);
         if (!saveFile.exists()) {
             return tasks;
         }
@@ -72,7 +82,7 @@ public class Storage {
                 }
             }
         } catch (FileNotFoundException e) {
-            throw new UsagiException("I couldn't read " + FILE_PATH
+            throw new UsagiException("I couldn't read " + filePath
                     + ", so I'm starting with an empty list.");
         }
         return tasks;
@@ -88,18 +98,18 @@ public class Storage {
      * @param tasks Tasks to write, in the order they should be saved.
      * @throws UsagiException If the file or its folder cannot be written to.
      */
-    public static void save(ArrayList<Task> tasks) throws UsagiException {
-        File saveDirectory = new File(FILE_PATH).getParentFile();
+    public void save(ArrayList<Task> tasks) throws UsagiException {
+        File saveDirectory = new File(filePath).getParentFile();
         if (saveDirectory != null && !saveDirectory.exists()) {
             saveDirectory.mkdirs();
         }
 
-        try (FileWriter writer = new FileWriter(FILE_PATH)) {
+        try (FileWriter writer = new FileWriter(filePath)) {
             for (Task task : tasks) {
                 writer.write(task.toFileFormat() + System.lineSeparator());
             }
         } catch (IOException e) {
-            throw new UsagiException("I couldn't save to " + FILE_PATH
+            throw new UsagiException("I couldn't save to " + filePath
                     + ", so this change may be lost when I close.");
         }
     }

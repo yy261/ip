@@ -48,7 +48,20 @@ public class Usagi {
     private final ArrayList<Task> tasks = new ArrayList<>();
 
     /** Reads the user's commands and prints Usagi's responses. */
-    private final Ui ui = new Ui();
+    private final Ui ui;
+
+    /** Saves the tasks to, and loads them from, the hard disk. */
+    private final Storage storage;
+
+    /**
+     * Creates a Usagi chatbot that saves its tasks to the given file.
+     *
+     * @param filePath Location of the save file.
+     */
+    public Usagi(String filePath) {
+        ui = new Ui();
+        storage = new Storage(filePath);
+    }
 
     /**
      * Starts the Usagi chatbot.
@@ -56,7 +69,7 @@ public class Usagi {
      * @param args Not used.
      */
     public static void main(String[] args) {
-        new Usagi().run();
+        new Usagi("./data/tasks.txt").run();
     }
 
     /**
@@ -78,7 +91,7 @@ public class Usagi {
      */
     private void loadTasks() {
         try {
-            tasks.addAll(Storage.load());
+            tasks.addAll(storage.load());
         } catch (UsagiException e) {
             ui.showError(e.getMessage());
         }
@@ -93,7 +106,7 @@ public class Usagi {
      */
     private void saveTasks() {
         try {
-            Storage.save(tasks);
+            storage.save(tasks);
         } catch (UsagiException e) {
             ui.showError(e.getMessage());
         }
